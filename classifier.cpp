@@ -12,7 +12,7 @@ class Classifier {
         set<string> unique_words;
         map<string, map<string, int>> word_counts; // label -> word-> frequency
         map<string, int> label_counts; // label -> frequency
-        map<string, vector<string>> training_data;
+        vector<pair<string, string>> training_data;
         set <string> get_unique_words(const string & substance){
             istringstream is(substance);
             set<string> words;
@@ -73,7 +73,7 @@ class Classifier {
                 string substance = row["content"];
                 set<string> words = get_unique_words(substance);
                 // Update label_counts and num_posts
-                training_data[label].push_back(substance);
+                training_data.emplace_back(label, substance);
                 label_counts[label]++;
                 num_posts++;
                 for(const string &word : words){
@@ -106,30 +106,28 @@ class Classifier {
         }
         void print_training(){
             cout << "training data:" << endl;
-            //vector<pair<string, string>> sorted_training_data;
+            
             for (const auto &[label, substance]  : training_data){
-                for (const auto &content : substance){
-                cout << " label = " << label << ", content = " 
-                << content << endl;
-                }
+                cout << "  label = " << label << ", content = " 
+                << substance << endl;
             }
             cout << "trained on " << num_posts << " examples" << endl;
             cout << "vocabulary size = " << unique_words.size() << endl;
             cout << endl;
-            cout << "classes: " << endl;
+            cout << "classes:" << endl;
             for (const auto & [label, count] : label_counts){
-                cout << label << ", " << count << " examples, log-prior = "
+                cout << "  " << label << ", " << count << " examples, log-prior = "
                 << log_prior(label) << endl;
             }
             cout << "classifier parameters:" << endl;
-            for (const auto & [label, words] : word_counts){
+            for (const auto &[label, words] : word_counts){
                 for(const auto &[word, count] : words) {
-                    cout << " " << label << ":" << word << ", count = " 
+                    cout << "  " << label << ":" << word << ", count = " 
                     << count << ", log-likelihood = " 
                     << log_likelihood(word, label) << endl;;
                 }
             }
-
+            cout << endl;
         }
 };
 
