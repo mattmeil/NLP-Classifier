@@ -42,12 +42,16 @@ class Classifier {
             int posts_with_word_given_label = 0;
             int posts_with_label = label_counts[label];
             int posts_with_word = 0;
-            if (word_counts[label] && word_counts[label][word]){
-                posts_with_word_given_label = word_counts[label][word];
+            if (word_counts[label] && word_counts.second[word]){
+                posts_with_word_given_label = word_counts.second[word];
                 return log(static_cast<double>(posts_with_word_given_label) / posts_with_label);
             }
             else if (!word_counts[label][word] && in_set(word)){
-                posts_with_word = 
+                for (const auto &label_entry : word_counts) {
+                    if (label_entry.second[word] > 0){
+                    posts_with_word += label_entry.second[word];
+                    }
+                }
                 return log(static_cast<double>(posts_with_word) / num_posts);
             }
             else{
