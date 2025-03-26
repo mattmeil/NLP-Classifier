@@ -83,26 +83,38 @@ class Classifier {
             }
         }
         void predict(const string &file){
+            cout << "trained on " << num_posts << " examples" << endl;
+            cout << endl;
+            cout << "test data:" << endl;
             csvstream fin(file);
             map<string, string> row;
-            //int total_posts_read = 0;
-            //int correct_classifications = 0;
-            //double best_score = -INFINITY;
-            //string best_label;
+            int total_posts_read = 0;
+            int correct_classifications = 0;
+            double best_score = -INFINITY;
+            string best_label;
             while (fin >> row){
                 string label = row["tag"];
                 string substance = row["content"];
-                //double log_score = log_prior(label);
+                double log_score = log_prior(label);
                 set<string> words = get_unique_words(substance);
-                //for (const string &word : words){
-                    //log_score += log_likelihood(word, label);
+                for (const string &word : words){
+                    log_score += log_likelihood(word, label);
                 }
-                //if (log_score > best_score){
-                    //best_score = log_score;
-                    //best_label = label;
-                //}
-            //}
-            
+                if (log_score > best_score){
+                    best_score = log_score;
+                    best_label = label;
+                }
+                total_posts_read++;
+                if (label == best_label){
+                    correct_classifications++;
+                }
+                cout << "  correct = " << label << ", predicted = "
+                << best_label << ", log-probability score = " << log_score << endl;
+                cout << "  content = " << substance << endl;
+                cout << endl;
+            }
+            cout << "performance: " << correct_classifications << " / "
+            << total_posts_read << " posts predicted correctly" << endl;
         }
         void print_training(){
             cout << "training data:" << endl;
@@ -147,7 +159,7 @@ int main(int argc, char *argv[]) {
         cout << "Error opening file: " << training_file << endl;
         return 1;
     }
-    c.print_training();
+    if (argc ==2 ){c.print_training();}
     string test_file;
     if (argc == 3){
         test_file = argv[2];
