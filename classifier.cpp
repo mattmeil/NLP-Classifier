@@ -42,7 +42,7 @@ class Classifier {
             int posts_with_word_given_label = 0;
             int posts_with_label = label_counts.at(label);
             int posts_with_word = 0;
-            if (word_counts.count(label) && word_counts.at(label).count(word)){
+            if (word_counts.at(label).count(word)){
                 posts_with_word_given_label = word_counts.at(label).at(word);
                 return log(static_cast<double>(posts_with_word_given_label) / posts_with_label);
             }
@@ -90,26 +90,30 @@ class Classifier {
             map<string, string> row;
             int total_posts_read = 0;
             int correct_classifications = 0;
-            double best_score = -INFINITY;
             string best_label;
             while (fin >> row){
                 string label = row["tag"];
                 string substance = row["content"];
-                double log_score = log_prior(label);
+                double best_score = -INFINITY;
+                double log_score;
                 set<string> words = get_unique_words(substance);
-                for (const string &word : words){
-                    log_score += log_likelihood(word, label);
-                }
-                if (log_score > best_score){
-                    best_score = log_score;
-                    best_label = label;
-                }
+                for (const auto &label_pair : label_counts){
+                    string label_temp = label_pair.first;
+                    log_score = log_prior(label_temp);
+                    for (const string &word : words){
+                        log_score += log_likelihood(word, label_temp);
+                    }
+                    if (log_score > best_score){
+                    best_score = log_score;                        
+                    best_label = label_temp;
+                    }
+                }    
                 total_posts_read++;
                 if (label == best_label){
                     correct_classifications++;
                 }
                 cout << "  correct = " << label << ", predicted = "
-                << best_label << ", log-probability score = " << log_score << endl;
+                << best_label << ", log-probability score = " << best_score << endl;
                 cout << "  content = " << substance << endl;
                 cout << endl;
             }
@@ -159,7 +163,7 @@ int main(int argc, char *argv[]) {
         cout << "Error opening file: " << training_file << endl;
         return 1;
     }
-    if (argc ==2 ){c.print_training();}
+    if (argc == 2 ){c.print_training();}
     string test_file;
     if (argc == 3){
         test_file = argv[2];
